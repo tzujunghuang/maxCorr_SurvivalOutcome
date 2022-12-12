@@ -1,78 +1,49 @@
 ##### This script is for the real data analysis that uses 'BONF_COX', 'BONF_OSE' and
 ##### 'SOSE' with one random ordering of data, that is, r = 1. 
-##### Further values of r depend on how many random orderings will be taken. In the article, r=1,...,200.
+##### Further values of r depend on how many random orderings will be taken to generate the results for 'SOSE',
+##### say X-fold stabilized one-step that uses r = X. In the real data application of this article, X = 200.
+
+
+##### Configuration
 # Make sure we have every package needed
-package_list = c('survival', 'MASS', 'Matrix', 'mvtnorm', 'dplyr') #'doParallel',
+package_list = c('survival', 'MASS', 'Matrix', 'mvtnorm', 'dplyr')
 
 for (package in package_list) {
   require(package, character.only = TRUE); library(package, character.only = TRUE) }
 
+# In this script, we set r = 1.
 r = 1
 # slurm_arrayid <- Sys.getenv('SLURM_ARRAY_TASK_ID')
 # r <- as.numeric(slurm_arrayid)
 # set.seed(r)
 
-# registerDoParallel(cores=3) # 3 cores on local machine; 6 on each node of clusters
-
-# Should be in same working directory	
+# Read in source codes and your desired data set (and change the path accordingly) 
+# that should be in the same working directory as is this script	
 source('real_data_acquiration.R')
 source('code_maxCorrSurv.R')
 csv_path = 'fulldata.csv'
 
 # Methods to run
-if (r==1){ meth_vecs = c('BONF_COX', 'BONF_OSE', 'SOSE')
-} else { meth_vecs = c('SOSE') }
+if (r == 1) { meths_vec = c('BONF_COX', 'BONF_OSE', 'SOSE')
+} else { meths_vec = c('SOSE') }
 
-# Configuration
+# Detected censoring rate
 cr = '16%'
+# elln
 elln_part = c(2); dim_elln = length(elln_part)
-quars_list = c(0.9)
-
+# The quartile of the outcomes for the truncation
+quars_vec = c(0.9)
 # Estimation Index
 est_index_val = 'whole samples'
-
 # Significance level
 alpha_val = 0.05
 
-# Read in analysis data
-### Full data
-#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=TRUE, single_layer_stratification=FALSE,
-#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
-#                          strata_var_1 = NA, strata_val_1=NA,
-#                          strata_var_2 = NA, strata_val_2=NA, 
-#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
-#                                          'infection.stage.ordinal'),
-#                          start_index_predictors=43)
 
-# vals = c("Asia", "Europe.Americas", "N.Africa", "S.Africa")
-# text_vals = c("Asia", "Europe_Americas", "N_Africa", "S_Africa")
-
-# val = "Asia"; text_val = "Asia"
-#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=FALSE, single_layer_stratification=TRUE,
-#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
-#                          strata_var_1='geographic.region.of.origin', strata_val_1=val,
-#                          strata_var_2=NA, strata_val_2=NA,
-#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
-#                                          'infection.stage.ordinal'),
-#                          start_index_predictors=43)
-
-### Double layer stratification
-#val = "S.Africa"; text_val = "subtype_C_S_Africa"
-#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=FALSE, single_layer_stratification=FALSE,
-#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
-#                          strata_var_1='subtype.reduced', strata_val_1='C',
-#                          strata_var_2='geographic.region.of.origin', strata_val_2=val,
-#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
-#                                          'infection.stage.ordinal'),
-#                          start_index_predictors=43)
-
-#Explore_data(data_used=data0)
-
-### Single layer stratification
+##### Single layer stratification
 vals = c("B", "C"); types = c("c", "b")
 vals_types = expand.grid(vals, types); colnames(vals_types) = c("val", "type")
 texts = sapply(1:dim(vals_types)[1], 
-                   function(i){ paste0("subtype_", vals_types[i,"val"], "_", vals_types[i,"type"]) })
+                   function(i){ paste("subtype_", vals_types[i,"val"], "_", vals_types[i,"type"], sep = '') })
 
 sim = data.frame(val = NA, type = NA, method = NA, rej = NA, p_val = NA, est = NA, se = NA, 
                  Sn = NA, k_est = NA, lb_ci = NA, ub_ci = NA, quar = NA, elln = NA)
@@ -96,14 +67,13 @@ for (idx in 1:dim(vals_types)[1]) {
                                               'infection.stage.ordinal'),
                             start_index_predictors = 43)
 
-  
   n = dim(data0$U)[1]; p = dim(data0$U)[2]
   obj0 <- NumericalStudy$new(input_data = data0)
 
-  for (quar in quars_list) {
+  for (quar in quars_vec) {
   
    out = list();
-   for (meth in meth_vecs) {
+   for (meth in meths_vec) {
       if (meth == 'SOSE') {
         
         print(meth)
@@ -143,7 +113,7 @@ for (idx in 1:dim(vals_types)[1]) {
       } else stop('Invalid method.') }
  
    
-   sim = rbind(sim, do.call(rbind,lapply(meth_vecs, function(meth) {
+   sim = rbind(sim, do.call(rbind,lapply(meths_vec, function(meth) {
     
     if (meth == 'SOSE') {
       
@@ -174,5 +144,41 @@ for (idx in 1:dim(vals_types)[1]) {
 
 sim = sim[-1,]
 rownames(sim) = 1:nrow(sim)
-save(sim, file = paste0('VRC01_subdata_analysis_', r, '.Rdata'))
+save(sim, file = paste('VRC01_subdata_analysis_', r, '.Rdata', sep = ''))
 
+
+
+##### Below are for the exploratory analysis 
+# Read in analysis data
+### Full data
+#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=TRUE, single_layer_stratification=FALSE,
+#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
+#                          strata_var_1 = NA, strata_val_1=NA,
+#                          strata_var_2 = NA, strata_val_2=NA, 
+#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
+#                                          'infection.stage.ordinal'),
+#                          start_index_predictors=43)
+
+# vals = c("Asia", "Europe.Americas", "N.Africa", "S.Africa")
+# text_vals = c("Asia", "Europe_Americas", "N_Africa", "S_Africa")
+
+# val = "Asia"; text_val = "Asia"
+#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=FALSE, single_layer_stratification=TRUE,
+#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
+#                          strata_var_1='geographic.region.of.origin', strata_val_1=val,
+#                          strata_var_2=NA, strata_val_2=NA,
+#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
+#                                          'infection.stage.ordinal'),
+#                          start_index_predictors=43)
+
+### Double layer stratification
+#val = "S.Africa"; text_val = "subtype_C_S_Africa"
+#data0 = Get_analysis_data(csv_path, binary_var=TRUE, full=FALSE, single_layer_stratification=FALSE,
+#                          outcome_label='ic50.geometric.mean.raw', censoring_label='ic50.censored',
+#                          strata_var_1='subtype.reduced', strata_val_1='C',
+#                          strata_var_2='geographic.region.of.origin', strata_val_2=val,
+#                          clinical_cols=c('subtype.reduced', 'country.of.origin', 'geographic.region.of.origin',
+#                                          'infection.stage.ordinal'),
+#                          start_index_predictors=43)
+
+#Explore_data(data_used=data0)
