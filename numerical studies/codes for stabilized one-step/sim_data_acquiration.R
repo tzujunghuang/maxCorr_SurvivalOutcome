@@ -1,7 +1,7 @@
 num_digits = 7
 source('data_management.R')
 
-# Simulate data, according to distributions described in Simulation Section of Sinica paper
+# Simulate data, according to the distributions described in the article
 Simulate_data = function(n, p, model, censoring_rate, rho, 
                          censoring_dist_par = c(0.07, 0.15, 0.28, 0.43), 
                          just.first100 = FALSE, mc_true_par = FALSE, 
@@ -9,8 +9,8 @@ Simulate_data = function(n, p, model, censoring_rate, rho,
   
   # Simulate data of predictor structure
   # Only working for p <= 1000
-  # U1= rho*matrix(1,p,p) - diag(rho*rep(1,p));
-  # U2= diag(rep(1,p)) + U1;
+  # U1 = rho*matrix(1,p,p) - diag(rho*rep(1,p));
+  # U2 = diag(rep(1,p)) + U1;
   # U = rmvnorm(n,rep(0,p),diag(1,p))%*%chol(U2);
   
   # For any p, especially p > 1000

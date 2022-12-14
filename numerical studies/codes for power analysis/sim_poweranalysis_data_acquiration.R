@@ -2,10 +2,8 @@ num_digits = 7
 source('data_management.R')
 
 # Simulate data, according to the distributions described in the article
-Simulate_data = function(n, p, model, censoring_rate, rho, 
-                         censoring_dist_par = c(0.07, 0.15, 0.28, 0.43), 
-                         just.first100 = FALSE, mc_true_par = FALSE, 
-                         block_size = 1e4){
+Simulate_data = function(n, p, model, censoring_rate, rho, eta, censoring_dist_par = c(0.07, 0.15, 0.28, 0.43), 
+                         just.first100 = FALSE, mc_true_par = FALSE, block_size = 1e4){
   
   # Simulate data of predictor structure
   # Only working for p <= 1000
@@ -38,15 +36,15 @@ Simulate_data = function(n, p, model, censoring_rate, rho,
   if (model == 'N.IE') {
     log_T = error_IE
   } else if (model == 'A1.IE') {
-    log_T = 0.25*U[,1] + error_IE; 
+    log_T = eta*U[,1] + error_IE; 
   } else if (model == 'A2.IE') {
-    log_T = c( as.matrix(U[,1:10]) %*% matrix(c(rep(0.15,5),rep(-0.1,5)), ncol = 1) ) + error_IE
+    log_T = c( as.matrix(U[,1:10]) %*% matrix(rep(eta,10), ncol = 1) ) + error_IE
   } else if (model == 'N.DE') {
     log_T = error_DE
   } else if (model == 'A1.DE') {
-    log_T = 0.25*U[,1] + error_DE
+    log_T = eta*U[,1] + error_DE
   } else if (model == 'A2.DE') {
-    log_T = c( as.matrix(U[,1:10]) %*% matrix(c(rep(0.15,5),rep(-0.1,5)), ncol = 1) ) + error_DE
+    log_T = c( as.matrix(U[,1:10]) %*% matrix(rep(eta,10), ncol = 1) ) + error_DE
   } else stop('Invalid model choice.')
   
   if (!(mc_true_par)) {
@@ -77,4 +75,3 @@ Simulate_data = function(n, p, model, censoring_rate, rho,
   }
   return( input_data )
 }    
-
