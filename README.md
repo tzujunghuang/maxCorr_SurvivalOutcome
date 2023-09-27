@@ -1,5 +1,5 @@
 # maxCorr_SurvivalOutcome
-This repository contains programming codes for the numerical studies in the article "Efficient Estimation of the Maximal Association between Multiple Predictors and a Survival Outcome" that is authored by Tzu-Jung Huang, Alex Luedtke and Ian W. McKeague (https://arxiv.org/abs/2112.10996) and accepted by AoS. Below is the layout of this repository.
+This repository contains programming codes for the numerical studies in the article "Efficient Estimation of the Maximal Association between Multiple Predictors and a Survival Outcome" that is authored by Tzu-Jung Huang, Alex Luedtke and Ian W. McKeague (https://arxiv.org/abs/2112.10996) and accepted by Annals of Statistics. Below is the layout of this repository.
 
 1. The directory *codes for stabilized one-step* in the folder *numerical studies* contains the main script *sim_maxCorrSurv.R* that generates the rejection decision results of Stabilized One-Step Estimator ('SOSE') and its competing methods (as mentioned in Competing Methods Section of the article) in one single Monte Carlo simulation run, 
 using auxiliary functions collected in the files *code_maxCorrSurv.R*, *data_management.R* and *sim_data_acquisition.R* in the same directory. 
