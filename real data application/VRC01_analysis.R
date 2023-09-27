@@ -19,7 +19,7 @@ r = 1
 
 # Read in source codes and your desired data set (and change the path accordingly) 
 # that should be in the same working directory as is this script	
-source('real_data_acquiration.R')
+source('real_data_acquisition.R')
 source('code_maxCorrSurv.R')
 csv_path = 'fulldata.csv'
 

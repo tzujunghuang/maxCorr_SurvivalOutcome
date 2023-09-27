@@ -6,7 +6,7 @@
 ##### Configuration
 # Read in source codes that should be in the same working directory as is this script	
 source('code_maxCorrSurv.R')
-source('sim_poweranalysis_data_acquiration.R')
+source('sim_poweranalysis_data_acquisition.R')
 # Estimation Index
 est_index_val = 'whole samples'
 # Censoring rate
